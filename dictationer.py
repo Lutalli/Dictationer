@@ -1,9 +1,11 @@
 from termcolor import colored
 import os, sys
+import re
 
 VERSION        = '1.5'
 QUIT_COMMAND   = 'q'
 REGRET_COMMAND = '_'
+REGEX_EXP = "^(.*?) @ (.*?)$"
 
 def ins(message):
     print(message)
@@ -75,28 +77,32 @@ def test(data):
         print("No errors! Congratulations!")
 
 def convert(word_list_path):
-    words = []
-    word_translations = []
-    title = ''
-    with open(word_list_path, 'r', encoding="UTF-8") as F:
-        file = F.read()
-        file_s = file.split('\n')
-        if file_s[0][0] == '.':
-            title = file_s[0][1:]
-            del file_s[0]
-        for line in file_s:
-            if line == '':
-                continue
-            line_s = line.split('@')
-            if len(line_s) != 2:
-                return -1
-            words.append(line_s[0][:-1])
-            word_translations.append(line_s[1][1:])
-    return {
-        "words": words,
-        "word_translations": word_translations,
-        "title": title
-    }
+    """
+    Get .words file into program use
+    Approach: RegEx
+    Returns:
+        A dict containing words, word_translation and title
+    """
+    try:
+        with open(word_list_path, 'r', encoding='UTF-8') as f:
+            words = list()
+            word_translations = list()
+            for line in f.readlines():
+                line = line.replace('\n', '')
+                if line[0] == '.':
+                    title = line
+                elif line:
+                    wordt = re.findall(REGEX_EXP, line)[0] # (word, word_translation)
+                    words.append(wordt[0])
+                    word_translations.append(wordt[1])
+    except FileNotFoundError:
+        return -1
+    else:
+        return {
+            "words": words,
+            "word_translations": word_translations,
+            "title": title
+        }
 
 def main():
     print("Welcome to Dictationer!")
@@ -114,7 +120,6 @@ def main():
     if data == -1:
         print(colored(f"The file '{word_list_path}' does exist but is not a suitable word-list file for Dictationer.", 'yellow'))
         exit()
-    number_of_words = len(data["words"])
 
     mode = ins(f"* Please enter the mode of the dictation.\n- {colored('A', 'cyan')}: The correction returns for every session.\n- {colored('B', 'cyan')}: The corrections return when all the sessions are finished.")
     while not mode in {'A', 'B'}:

@@ -1,4 +1,4 @@
 """
-    data_convertor.py created by zty
+    converter.py created by &*^#(*!~!!)
+    convert strange file format into .words
 """
-
